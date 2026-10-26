@@ -1,0 +1,36 @@
+{
+  "id": "lipatos-aindor-unique-items",
+  "title": "LipatoS — Уникальные предметы Айндора",
+  "description": "Автоматизация уникальных предметов Айндора: Багряная мантия (эхо заклинания) и Прочный кожаный ремень (−15 фунтов к текущей загруженности).",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "LipatoS"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "6.0.0",
+          "verified": "6.0.5"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/main.js",
+    "scripts/belt.js"
+  ],
+  "url": "https://github.com/lipatosss/lipatos-aindor-unique-items",
+  "manifest": "https://raw.githubusercontent.com/lipatosss/lipatos-aindor-unique-items/main/module.json",
+  "download": "https://github.com/lipatosss/lipatos-aindor-unique-items/releases/download/v1.0.0/lipatos-aindor-unique-items-v1.0.0.zip",
+  "readme": "https://github.com/lipatosss/lipatos-aindor-unique-items/blob/main/README.md",
+  "bugs": "https://github.com/lipatosss/lipatos-aindor-unique-items/issues"
+}

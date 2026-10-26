@@ -1,0 +1,43 @@
+name: Publish Foundry Release
+on:
+  push:
+    branches: [main]
+    paths:
+      - module.json
+      - 'scripts/**'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Package module
+        id: package
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./module.json').version")
+          ASSET="lipatos-aindor-unique-items-v${VERSION}.zip"
+          mkdir -p dist/lipatos-aindor-unique-items
+          cp module.json dist/lipatos-aindor-unique-items/
+          cp -R scripts dist/lipatos-aindor-unique-items/
+          (cd dist && zip -qr "../${ASSET}" lipatos-aindor-unique-items)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "asset=${ASSET}" >> "$GITHUB_OUTPUT"
+      - name: Create or refresh release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="v${{ steps.package.outputs.version }}"
+          ASSET="${{ steps.package.outputs.asset }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --clobber
+          else
+            gh release create "$TAG" "$ASSET" --target "$GITHUB_SHA" \
+              --title "LipatoS — Уникальные предметы Айндора $TAG" \
+              --notes "Первый объединённый выпуск: Багряная мантия и Прочный кожаный ремень."
+          fi

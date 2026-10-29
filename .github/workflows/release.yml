@@ -19,6 +19,10 @@ jobs:
         id: package
         shell: bash
         run: |
+          set -euo pipefail
+          node --check scripts/main.js
+          node --check scripts/belt.js
+          node --check scripts/heather-mead.mjs
           VERSION=$(node -p "require('./module.json').version")
           ASSET="lipatos-aindor-unique-items-v${VERSION}.zip"
           mkdir -p dist/lipatos-aindor-unique-items

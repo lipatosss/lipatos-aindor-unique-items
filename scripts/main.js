@@ -1,3 +1,4 @@
+import './heather-mead.mjs';
 const MODULE_ID = "lipatos-aindor-unique-items";
 const LEGACY_MODULE_IDS = ["aindor-unique-items", "bagryanaya-mantiya-echo"];
 const ITEM_FLAG = "echoItem";

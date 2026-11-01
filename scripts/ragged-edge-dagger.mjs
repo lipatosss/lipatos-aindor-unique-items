@@ -64,8 +64,9 @@ function edgeHit(roll, armorClass) {
   return Number.isFinite(Number(roll?.total)) && Number(roll.total) >= armorClass;
 }
 
-// The attack roll happens BEFORE damage. Remember the target's health now,
-// so damage from this attack cannot make a healthy target eligible retroactively.
+// A real attack roll is optional in the native dnd5e workflow.
+// When a damage roll is made without an attack roll, the GM adjudicates
+// the hit. If there WAS a roll, a miss must never grant the bonus.
 Hooks.on("dnd5e.postRollAttack", (rolls, data) => {
   const activity = data?.subject;
   if (!edgeItem(activity?.item)) return;
@@ -73,50 +74,72 @@ Hooks.on("dnd5e.postRollAttack", (rolls, data) => {
   if (actor?.documentName !== "Actor" || !actor.isOwner) return;
   const key = edgeKey(activity);
   if (!key) return;
-  EDGE_PENDING.delete(key); // A miss/new attack must invalidate previous hits.
-
   const turn = edgeTurn(actor);
-  if (!turn.valid || edgeUsed(actor, turn.id)) return;
-  const target = edgeSingleTarget();
-  const victim = target?.actor;
-  if (!victim || victim.uuid === actor.uuid) return;
-  const hp = Number(victim.system?.attributes?.hp?.value);
-  const max = Number(victim.system?.attributes?.hp?.max);
-  const ac = Number(victim.system?.attributes?.ac?.value);
-  if (!Number.isFinite(hp) || !Number.isFinite(max) || max <= 0 || hp <= 0 || hp >= max) return;
-  if (!Number.isFinite(ac) || ac <= 0 || !edgeHit(rolls?.[0], ac)) return;
+  const victim = edgeSingleTarget()?.actor;
+  const hp = Number(victim?.system?.attributes?.hp?.value);
+  const max = Number(victim?.system?.attributes?.hp?.max);
+  const ac = Number(victim?.system?.attributes?.ac?.value);
+  const wounded = victim?.uuid !== actor.uuid
+    && Number.isFinite(hp) && Number.isFinite(max)
+    && max > 0 && hp > 0 && hp < max;
 
   EDGE_PENDING.set(key, {
     actorUuid: actor.uuid,
-    targetUuid: victim.uuid,
+    targetUuid: victim?.uuid ?? null,
     turnId: turn.id,
+    eligible: Boolean(turn.valid && !edgeUsed(actor, turn.id)
+      && wounded && Number.isFinite(ac) && ac > 0 && edgeHit(rolls?.[0], ac)),
     timestamp: Date.now()
   });
 });
 
-// Insert a die into the native DAMAGE configuration, not a second damage
-// application. This keeps 1к4 piercing inside the same damage type/critical.
-Hooks.on("dnd5e.preRollDamage", config => {
+// Apply bonus to native damage before the roll is built, no separate die
+// prompt. The selected target is the same one shown in the damage chat card.
+Hooks.on("dnd5e.preRollDamage", (config, dialog, message) => {
   const activity = config?.subject;
   if (!edgeItem(activity?.item)) return;
   const actor = edgeActor(activity);
-  if (!actor?.isOwner) return;
+  if (actor?.documentName !== "Actor" || !actor.isOwner) return;
   const key = edgeKey(activity);
-  const pending = EDGE_PENDING.get(key);
-  if (!pending || Date.now() - pending.timestamp > EDGE_EXPIRY_MS) {
-    EDGE_PENDING.delete(key);
+  const turn = edgeTurn(actor);
+  if (!key || !turn.valid || edgeUsed(actor, turn.id)) return;
+  const victim = edgeSingleTarget()?.actor;
+  if (!victim || victim.uuid === actor.uuid) {
+    console.info(EDGE_MODULE + " | Рваная рана: выберите одну цель (T).");
     return;
   }
 
-  const turn = edgeTurn(actor);
-  if (!turn.valid || turn.id !== pending.turnId || edgeUsed(actor, turn.id)) return;
-  if (edgeSingleTarget()?.actor?.uuid !== pending.targetUuid) return;
+  const hp = Number(victim.system?.attributes?.hp?.value);
+  const max = Number(victim.system?.attributes?.hp?.max);
+  if (!Number.isFinite(hp) || !Number.isFinite(max) || max <= 0 || hp <= 0 || hp >= max) {
+    console.debug(EDGE_MODULE + " | Рваная рана: цель не ранена.", victim.name);
+    return;
+  }
+
+  const pending = EDGE_PENDING.get(key);
+  if (pending && Date.now() - pending.timestamp < EDGE_EXPIRY_MS && pending.turnId === turn.id) {
+    if (!pending.eligible || pending.targetUuid !== victim.uuid) {
+      console.debug(EDGE_MODULE + " | Рваная рана: атака не попала или цель изначально была здоровой.");
+      return;
+    }
+  }
 
   const base = config.rolls?.find(roll => roll.base && Array.isArray(roll.parts))
     ?? config.rolls?.find(roll => Array.isArray(roll.parts));
-  if (!base) return;
+  if (!base) {
+    console.warn(EDGE_MODULE + " | Рваная рана: часть урона не найдена.");
+    return;
+  }
   base.parts.push("1d4");
   config._aindorRaggedEdge = { key, turnId: turn.id };
+  if (message?.data) {
+    message.data.flavor = (message.data.flavor ?? EDGE_NAME + " — урон")
+      + " · Рваная рана (+1к4)";
+  }
+  console.info(EDGE_MODULE + " | Рваная рана: +1к4 к урону", {
+    actor: actor.name, target: victim.name,
+    mode: pending ? "with-attack-roll" : "manual-damage"
+  });
 });
 
 // A cancelled damage dialog must NOT spend the once-per-turn ability.

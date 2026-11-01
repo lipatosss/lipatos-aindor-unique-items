@@ -1,8 +1,8 @@
 {
   "id": "lipatos-aindor-unique-items",
   "title": "LipatoS — Уникальные предметы Айндора",
-  "description": "Уникальное снаряжение Айндора: Багряная мантия, Прочный кожаный ремень, Вересковая медовуха, Кинжал рваной кромки, Лук соколиного глаза (крит 19–20) и Лук тяжёлой тетивы (1к10).",
-  "version": "1.0.10",
+  "description": "Уникальное снаряжение Айндора: мантия, ремень, медовуха, кинжал, два специальных лука, улучшенная стрела и усиленный стальной арбалетный болт (+1 колющего урона).",
+  "version": "1.0.11",
   "authors": [
     {
       "name": "LipatoS"
@@ -34,11 +34,12 @@
     "scripts/main.js",
     "scripts/belt.js",
     "scripts/ragged-edge-dagger.mjs",
-    "scripts/shop-bows.mjs"
+    "scripts/shop-bows.mjs",
+    "scripts/shop-ammunition.mjs"
   ],
   "url": "https://github.com/lipatosss/lipatos-aindor-unique-items",
   "manifest": "https://raw.githubusercontent.com/lipatosss/lipatos-aindor-unique-items/main/module.json",
-  "download": "https://github.com/lipatosss/lipatos-aindor-unique-items/releases/download/v1.0.10/lipatos-aindor-unique-items-v1.0.10.zip",
+  "download": "https://github.com/lipatosss/lipatos-aindor-unique-items/releases/download/v1.0.11/lipatos-aindor-unique-items-v1.0.11.zip",
   "readme": "https://github.com/lipatosss/lipatos-aindor-unique-items/blob/main/README.md",
   "bugs": "https://github.com/lipatosss/lipatos-aindor-unique-items/issues"
 }

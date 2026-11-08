@@ -30,36 +30,26 @@ jobs:
           node --check scripts/shop-swords.mjs
           node --check scripts/last-watch-seal.mjs
           VERSION=$(node -p "require('./module.json').version")
-          ASSET="lipatos-aindor-unique-items-v${VERSION}.zip"
+          ASSET="lipatos-aindor-unique-items.zip"
           mkdir -p dist/lipatos-aindor-unique-items
           cp module.json dist/lipatos-aindor-unique-items/
           cp -R scripts dist/lipatos-aindor-unique-items/
           (cd dist && zip -qr "../${ASSET}" lipatos-aindor-unique-items)
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "asset=${ASSET}" >> "$GITHUB_OUTPUT"
-      - name: Publish ZIP to raw.githubusercontent.com mirror
-        shell: bash
-        run: |
-          set -euo pipefail
-          ASSET="lipatos-aindor-unique-items-v${{ steps.package.outputs.version }}.zip"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$ASSET"
-          if ! git diff --cached --quiet; then
-            git commit -m "Add raw CDN mirror for Foundry ZIP ${{ steps.package.outputs.version }}"
-            git push origin HEAD:main
-          fi
       - name: Create or refresh release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
+          set -euo pipefail
           TAG="v${{ steps.package.outputs.version }}"
           ASSET="${{ steps.package.outputs.asset }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$ASSET" --clobber
+            gh release edit "$TAG" --latest
           else
-            gh release create "$TAG" "$ASSET" --target "$GITHUB_SHA" \
+            gh release create "$TAG" "$ASSET" --target "$GITHUB_SHA" --latest \
               --title "LipatoS — Уникальные предметы Айндора $TAG" \
               --notes "Добавлена Печать Последнего Дозора: +1 КД, защита от испуга, реакция на урон союзнику с восстановлением заряда после долгого отдыха."
           fi

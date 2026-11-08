@@ -41,7 +41,7 @@
   ],
   "url": "https://github.com/lipatosss/lipatos-aindor-unique-items",
   "manifest": "https://raw.githubusercontent.com/lipatosss/lipatos-aindor-unique-items/main/module.json",
-  "download": "https://github.com/lipatosss/lipatos-aindor-unique-items/releases/latest/download/lipatos-aindor-unique-items.zip",
+  "download": "https://raw.githubusercontent.com/lipatosss/lipatos-aindor-unique-items/main/lipatos-aindor-unique-items.zip",
   "readme": "https://github.com/lipatosss/lipatos-aindor-unique-items/blob/main/README.md",
   "bugs": "https://github.com/lipatosss/lipatos-aindor-unique-items/issues"
 }

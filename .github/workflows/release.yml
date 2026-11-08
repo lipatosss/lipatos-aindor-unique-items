@@ -37,6 +37,18 @@ jobs:
           (cd dist && zip -qr "../${ASSET}" lipatos-aindor-unique-items)
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "asset=${ASSET}" >> "$GITHUB_OUTPUT"
+      - name: Update permanent ZIP mirror (no GitHub Releases redirect)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ASSET="${{ steps.package.outputs.asset }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$ASSET"
+          if ! git diff --cached --quiet; then
+            git commit -m "Update stable Foundry ZIP mirror for v${{ steps.package.outputs.version }}"
+            git push origin HEAD:main
+          fi
       - name: Create or refresh release
         env:
           GH_TOKEN: ${{ github.token }}

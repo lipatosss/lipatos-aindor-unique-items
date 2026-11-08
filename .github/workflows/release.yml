@@ -22,6 +22,7 @@ jobs:
           set -euo pipefail
           node --check scripts/main.js
           node --check scripts/belt.js
+          node --test tests/belt-level.test.mjs
           node --check scripts/heather-mead.mjs
           node --check scripts/ragged-edge-dagger.mjs
           node --check scripts/shop-bows.mjs

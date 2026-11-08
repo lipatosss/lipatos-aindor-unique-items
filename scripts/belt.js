@@ -106,25 +106,16 @@ Hooks.once("setup", () => {
     return;
   }
 
-  Hooks.on("updateItem", item => {
-    const actor = item.parent;
-    if (actor?.type !== "character" || item.name?.trim() !== AINDOR_BELT_NAME) return;
-    actor.prepareData();
-    if (actor.sheet?.rendered) actor.sheet.render();
-  });
+  // Foundry already recalculates the actor when an equipped item changes.
+  // Never manually call actor.prepareData() from updateItem here: doing so
+  // may accumulate a character's class levels a second time (3 -> 6).
 });
 
 Hooks.once("ready", () => {
   if (!globalThis[AINDOR_BELT_REGISTRATION_KEY]) return;
 
-  const actors = [
-    ...(game.actors?.contents ?? []),
-    ...(globalThis.canvas?.tokens?.placeables ?? []).map(token => token.actor).filter(Boolean)
-  ];
-  for (const actor of new Set(actors)) {
-    if (actor.type !== "character") continue;
-    actor.prepareData();
-    if (actor.sheet?.rendered) actor.sheet.render();
-  }
-  console.info(`${AINDOR_BELT_MODULE_ID} | Эффект ремня зарегистрирован через libWrapper (−15 фунтов).`);
+  // Do not call prepareData() for every character at startup.
+  // The setup-time libWrapper registration handles normal preparation and
+  // automatically recalculates encumbrance when Foundry refreshes an actor.
+  console.info(`${AINDOR_BELT_MODULE_ID} | Эффект ремня зарегистрирован через libWrapper (−15 фунтов); повторная подготовка персонажей отключена.`);
 });

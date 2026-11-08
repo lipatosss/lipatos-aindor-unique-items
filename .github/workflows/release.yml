@@ -35,6 +35,16 @@ jobs:
           cp module.json dist/lipatos-aindor-unique-items/
           cp -R scripts dist/lipatos-aindor-unique-items/
           (cd dist && zip -qr "../${ASSET}" lipatos-aindor-unique-items)
+          unzip -t "${ASSET}"
+          unzip -p "${ASSET}" lipatos-aindor-unique-items/module.json | node -e '
+            let input=""; process.stdin.on("data", d => input+=d);
+            process.stdin.on("end", () => {
+              const manifest=JSON.parse(input);
+              if(manifest.id !== "lipatos-aindor-unique-items") process.exit(1);
+              if(!manifest.esmodules?.every(p => p.startsWith("scripts/"))) process.exit(1);
+              console.log("Verified package:", manifest.id, manifest.version);
+            });
+          '
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "asset=${ASSET}" >> "$GITHUB_OUTPUT"
       - name: Update permanent ZIP mirror (no GitHub Releases redirect)

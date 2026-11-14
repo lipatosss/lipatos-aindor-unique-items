@@ -1,5 +1,5 @@
 /**
- * Eight Aindor potions (including small healing): canonical world templates for Foundry v14 / dnd5e 6.x.
+ * Nine Aindor potions (including two healing variants): canonical world templates for Foundry v14 / dnd5e 6.x.
  * The matching LipatoS Buffs & Debuffs module handles effects after actual use.
  * Deliberately leave illustrations up to the GM.
  */
@@ -36,6 +36,11 @@ const POTIONS = [
     id: "zele-malogo-lecheniya", name: "Зелье малого лечения", rarity: "common", price: 500,
     prose: "Небольшой стеклянный флакон с густой рубиновой жидкостью, слегка светящейся изнутри. Сладковатый вкус с травяной горечью сопровождает быстрое заживление ран.",
     effect: "Мгновенно восстанавливает 2к4 + 2 хита, но не выше максимума."
+  },
+  {
+    id: "kraftovoe-zele-lecheniya", name: "Крафтовое зелье лечения", rarity: "common", price: 550,
+    prose: "Небольшой стеклянный флакон с насыщенно-красным алхимическим настоем, в котором мерцают тёплые золотистые искры. Сваренное вручную зелье пахнет лекарственными травами и свежим мёдом. После глотка по телу расходится мягкое тепло, ускоряющее заживление ран.",
+    effect: "Мгновенно восстанавливает 2к4 + 3 хита, но не выше максимума."
   },
   {
     id: "zele-skorosti", name: "Зелье скорости", rarity: "uncommon", price: 300,

@@ -7,7 +7,7 @@ const SCOPE = "lipatos-aindor-unique-items";
 const GEAR = [
   {
     identifier: "kozhannyy-fartuh-povara",
-    name: "Кожанный фартух повара",
+    name: "Кожаный фартух повара",
     profession: "cooking",
     bonus: 1,
     price: 85,
@@ -57,6 +57,30 @@ function makeGearItem(entry) {
   };
 }
 
+function matchesGear(item, entry) {
+  if (item?.type !== "equipment") return false;
+  const id = item.system?.identifier;
+  const flag = item.flags?.[SCOPE]?.professionGear;
+  const name = String(item.name ?? "").trim().toLowerCase();
+  return id === entry.identifier || flag === entry.identifier
+    || name === entry.name.toLowerCase()
+    || (entry.profession === "cooking" && name === "кожанный фартух повара");
+}
+
+// Repair copies made by Item Piles or older versions without overwriting
+// item artwork, equipment state or any other item data.
+async function repairGearFlags(item, entry) {
+  const scope = item.flags?.[SCOPE] ?? {};
+  if (scope.professionGear === entry.identifier
+      && scope.professionBonus?.id === entry.profession
+      && Number(scope.professionBonus?.value) === entry.bonus) return false;
+  await item.update({
+    ["flags." + SCOPE + ".professionGear"]: entry.identifier,
+    ["flags." + SCOPE + ".professionBonus"]: { id: entry.profession, value: entry.bonus }
+  });
+  return true;
+}
+
 function exists(entry) {
   return (game.items?.contents ?? []).some(item => (
     item.system?.identifier === entry.identifier
@@ -76,6 +100,22 @@ Hooks.once("ready", async () => {
     } catch (error) {
       console.error(SCOPE + " | Не удалось создать: " + entry.name, error);
       ui.notifications?.warn?.("Не удалось создать «" + entry.name + "» (F12).");
+    }
+  }
+
+  const allItems = [
+    ...(game.items?.contents ?? []),
+    ...(game.actors?.contents ?? []).flatMap(actor => actor.items?.contents ?? [])
+  ];
+  for (const item of allItems) {
+    const entry = GEAR.find(e => matchesGear(item, e));
+    if (!entry) continue;
+    try {
+      if (await repairGearFlags(item, entry)) {
+        console.info(SCOPE + " | Восстановлены флаги предмета: " + item.name);
+      }
+    } catch (error) {
+      console.error(SCOPE + " | Не удалось восстановить флаги: " + item.name, error);
     }
   }
 });

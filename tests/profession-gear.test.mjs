@@ -18,8 +18,8 @@ await callbacks.get("ready")();
 
 const get = name => created.find(i => i.name === name);
 
-test("creates both original items and two new weapons without custom icons", () => {
-  assert.equal(created.length, 4);
+test("creates five profession items including alchemist gloves without icons", () => {
+  assert.equal(created.length, 5);
   assert.equal(get("Эльфийский клинок ремесленника").type, "weapon");
   assert.equal(get("Нож шеф-повара Жумбы").type, "weapon");
   assert.ok(!Object.hasOwn(get("Эльфийский клинок ремесленника"), "img"));
@@ -37,4 +37,20 @@ test("chef knife grants cooking +1 and keeps the old compatibility flag", () => 
   assert.deepEqual(knife.flags["lipatos-aindor-unique-items"].professionBonus,
     {id:"cooking",value:1});
   assert.equal(knife.system.damage.base.denomination,4);
+});
+
+test("alchemist leather gloves are wearable equipment with +1 alchemy and no custom icon", () => {
+  const gloves = get("Кожаные перчатки алхимика");
+  assert.ok(gloves);
+  assert.equal(gloves.type, "equipment");
+  assert.equal(gloves.system.equipped, false);
+  assert.equal(gloves.system.price.value, 90);
+  assert.equal(gloves.system.price.denomination, "sp");
+  assert.equal(gloves.system.weight.value, 0.5);
+  assert.equal(gloves.system.rarity, "uncommon");
+  assert.deepEqual(gloves.flags["lipatos-aindor-unique-items"].professionBonuses,
+    [{id:"alchemy",value:1}]);
+  assert.deepEqual(gloves.flags["lipatos-aindor-unique-items"].professionBonus,
+    {id:"alchemy",value:1});
+  assert.equal(Object.hasOwn(gloves, "img"), false);
 });

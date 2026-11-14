@@ -30,6 +30,7 @@ jobs:
           node --check scripts/shop-swords.mjs
           node --check scripts/last-watch-seal.mjs
           node --check scripts/profession-gear.mjs
+          node --test tests/profession-gear.test.mjs
           VERSION=$(node -p "require('./module.json').version")
           ASSET="lipatos-aindor-unique-items.zip"
           mkdir -p dist/lipatos-aindor-unique-items

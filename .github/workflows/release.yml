@@ -5,6 +5,7 @@ on:
     paths:
       - module.json
       - 'scripts/**'
+      - 'tests/**'
       - '.github/workflows/release.yml'
   workflow_dispatch:
 permissions:

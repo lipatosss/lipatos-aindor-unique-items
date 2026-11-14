@@ -39,8 +39,8 @@ test("chef knife grants cooking +1 and keeps the old compatibility flag", () => 
   assert.equal(knife.system.damage.base.denomination,4);
 });
 
-test("alchemist leather gloves are wearable equipment with +1 alchemy and no custom icon", () => {
-  const gloves = get("Кожаные перчатки алхимика");
+test("artisan gloves are wearable equipment with both +1 alchemy and +1 glassblowing, no custom icon", () => {
+  const gloves = get("Кожаные перчатки алхимика и стеклодува");
   assert.ok(gloves);
   assert.equal(gloves.type, "equipment");
   assert.equal(gloves.system.equipped, false);
@@ -49,8 +49,46 @@ test("alchemist leather gloves are wearable equipment with +1 alchemy and no cus
   assert.equal(gloves.system.weight.value, 0.5);
   assert.equal(gloves.system.rarity, "uncommon");
   assert.deepEqual(gloves.flags["lipatos-aindor-unique-items"].professionBonuses,
-    [{id:"alchemy",value:1}]);
-  assert.deepEqual(gloves.flags["lipatos-aindor-unique-items"].professionBonus,
-    {id:"alchemy",value:1});
+    [{id:"alchemy",value:1},{id:"glassblowing",value:1}]);
   assert.equal(Object.hasOwn(gloves, "img"), false);
+});
+
+test("upgrades legacy glove already in actor inventory, keeps icon and equipped status", async () => {
+  const oldGloves = {
+    type:"equipment", name:"Кожаные перчатки алхимика",
+    img:"my-custom-art/gloves.webp",
+    system:{
+      identifier:"kozhanye-perchatki-alhimika",equipped:true,
+      description:{value:"Старая версия"},
+      price:{value:90,denomination:"sp"}
+    },
+    flags:{"lipatos-aindor-unique-items":{
+      professionGear:"kozhanye-perchatki-alhimika",
+      professionBonus:{id:"alchemy",value:1},
+      professionBonuses:[{id:"alchemy",value:1}]
+    }},
+    async update(changes) {
+      for (const [key, value] of Object.entries(changes)) {
+        if (key==="name") { this.name=value;continue; }
+        const parts=key.split(".");
+        let object=this;
+        while (parts.length>1) { const part=parts.shift();object[part]??={};object=object[part]; }
+        object[parts[0]]=value;
+      }
+    }
+  };
+  // Only the exact existing glove should be migrated; no duplicate glove
+  // should be created in the world when its legacy name exists.
+  const countBefore=created.length;
+  game.items.contents=[oldGloves];
+  game.actors.contents=[{items:{contents:[oldGloves]}}];
+  await callbacks.get("ready")();
+  assert.equal(oldGloves.name,"Кожаные перчатки алхимика и стеклодува");
+  assert.deepEqual(oldGloves.flags["lipatos-aindor-unique-items"].professionBonuses,
+    [{id:"alchemy",value:1},{id:"glassblowing",value:1}]);
+  assert.match(oldGloves.system.description.value,/Стеклодувство/);
+  assert.equal(oldGloves.img,"my-custom-art/gloves.webp");
+  assert.equal(oldGloves.system.equipped,true);
+  assert.equal(oldGloves.system.price.value,90);
+  assert.equal(created.filter(i=>i.system?.identifier==="kozhanye-perchatki-alhimika").length,1);
 });

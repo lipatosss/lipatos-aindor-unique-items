@@ -57,14 +57,14 @@ const GEAR = [
 
   {
     identifier: "kozhanye-perchatki-alhimika",
-    name: "Кожаные перчатки алхимика",
-    profession: "alchemy",
-    bonus: 1,
+    name: "Кожаные перчатки алхимика и стеклодува",
+    legacyNames: ["кожаные перчатки алхимика", "кожанные перчатки алхимика"],
+    professionBonuses: [{ id: "alchemy", value: 1 }, { id: "glassblowing", value: 1 }],
     price: 90,
     weight: 0.5,
     rarity: "uncommon",
-    description: "<p>Пара облегающих перчаток из тонкой выделанной кожи, с усиленными швами и аккуратно подогнанными пальцами. Кожа обработана воском, чтобы защищать руки от брызг, не мешая точным движениям при работе со склянками, пипетками и хрупкими ингредиентами. Эти перчатки особенно ценят алхимики, которым важна твёрдость руки и аккуратность смешивания составов.</p>"
-      + "<h3>Эффект — Уверенное смешивание</h3><p>Пока перчатки <strong>надеты</strong>, персонаж получает <strong>+1 к проверкам ремесла «Алхимия»</strong>. При снятии бонус исчезает. Настройка не требуется; бонусы от нескольких ремесленных предметов к одному ремеслу не складываются — используется наибольший.</p>"
+    description: "<p>Тонкие кожаные перчатки ремесленника, сшитые из мягкой выделанной кожи и укреплённые вощёной нитью. Ладони снабжены плотными нескользящими накладками, а манжеты пропитаны воском для защиты от влаги и брызг. Удобная посадка позволяет уверенно удерживать колбы, пипетки, стеклодувные трубки и небольшие инструменты, сохраняя точность движений. Такие перчатки любят мастера, работающие как с алхимическими смесями, так и с горячим стеклом; они не защищают от прикосновения к раскалённым предметам.</p>"
+      + "<h3>Эффект — Точность ремесленника</h3><p>Пока перчатки <strong>надеты</strong>, владелец получает одновременно <strong>+1 к проверкам ремесла «Алхимия»</strong> и <strong>+1 к проверкам ремесла «Стеклодувство»</strong>. При снятии оба бонуса исчезают. Настройка не требуется. Другие бонусы от ремесленного снаряжения к тому же ремеслу не складываются: используется наибольший.</p>"
   }
 ]; 
 
@@ -161,6 +161,7 @@ function matchesGear(item, entry) {
   const name = String(item.name ?? "").trim().toLowerCase();
   return id === entry.identifier || flag === entry.identifier
     || name === entry.name.toLowerCase()
+    || entry.legacyNames?.includes(name)
     || (entry.profession === "cooking" && name === "кожанный фартух повара");
 }
 
@@ -174,13 +175,25 @@ async function repairGearFlags(item, entry) {
   const legacy = bonuses.length === 1
     && scope.professionBonus?.id === bonuses[0].id
     && Number(scope.professionBonus?.value) === bonuses[0].value;
-  if (scope.professionGear === entry.identifier && exact
-      && (bonuses.length !== 1 || legacy)) return false;
-  const update = {
-    ["flags." + SCOPE + ".professionGear"]: entry.identifier,
-    ["flags." + SCOPE + ".professionBonuses"]: bonuses
-  };
-  if (bonuses.length === 1) update["flags." + SCOPE + ".professionBonus"] = bonuses[0];
+  const update = {};
+  if (scope.professionGear !== entry.identifier)
+    update["flags." + SCOPE + ".professionGear"] = entry.identifier;
+  if (!exact)
+    update["flags." + SCOPE + ".professionBonuses"] = bonuses;
+  if (bonuses.length === 1 && !legacy)
+    update["flags." + SCOPE + ".professionBonus"] = bonuses[0];
+
+  // Migrate the old gloves rather than create another item. Preserve any
+  // manually assigned item artwork, equipped state, price and other fields.
+  if (entry.identifier === "kozhanye-perchatki-alhimika") {
+    const oldName = String(item.name ?? "").trim().toLowerCase();
+    if (entry.legacyNames?.includes(oldName))
+      update.name = entry.name;
+    if (item.system?.description?.value !== entry.description)
+      update["system.description.value"] = entry.description;
+  }
+
+  if (!Object.keys(update).length) return false;
   await item.update(update);
   return true;
 }
@@ -190,6 +203,7 @@ function exists(entry) {
     item.system?.identifier === entry.identifier
     || item.flags?.[SCOPE]?.professionGear === entry.identifier
     || item.name?.trim() === entry.name
+    || entry.legacyNames?.includes(String(item.name ?? "").trim().toLowerCase())
   ));
 }
 

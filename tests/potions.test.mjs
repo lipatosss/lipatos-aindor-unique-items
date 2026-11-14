@@ -25,6 +25,9 @@ test("installs eight potion templates with native one-dose use and no forced art
   assert.equal(created.length, 8);
   const byId = new Map(created.map(item => [item.system.identifier, item]));
   assert.equal(byId.size, 8);
+  assert.equal(byId.get("zele-malogo-lecheniya").name, "Зелье малого лечения");
+  assert.match(byId.get("zele-malogo-lecheniya").system.description.value, /2к4 \+ 2/);
+  assert.match(byId.get("zele-malogo-lecheniya").system.description.value, /nebolshoi-flakon-dlya-zelia/);
   for (const item of created) {
     assert.equal(item.type, "consumable");
     assert.equal(item.system.type.value, "potion");
@@ -39,7 +42,7 @@ test("installs eight potion templates with native one-dose use and no forced art
   }
   assert.equal(byId.get("zele-feniksa").system.rarity, "rare");
   assert.equal(byId.get("zele-prizrachnogo-shaga").system.price.value, 800);
-  assert.equal(byId.get("zele-lecheniya").system.price.value, 500);
+  assert.equal(byId.get("zele-malogo-lecheniya").system.price.value, 500);
   assert.equal(byId.get("zele-skorosti").system.price.value, 300);
   assert.equal(byId.get("zele-buyvola").system.price.value, 250);
 });

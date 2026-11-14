@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 
-test("installs eight potion templates with native one-dose use and no forced artwork", async () => {
+test("installs nine potion templates with native one-dose use and no forced artwork", async () => {
   const hooks = new Map();
   const created = [];
   const module = { api: {} };
@@ -22,12 +22,18 @@ test("installs eight potion templates with native one-dose use and no forced art
   vm.runInContext(fs.readFileSync("scripts/potions.mjs", "utf8"), context);
   hooks.get("ready")();
   for (let i = 0; i < 3; i++) await new Promise(resolve => setImmediate(resolve));
-  assert.equal(created.length, 8);
+  assert.equal(created.length, 9);
   const byId = new Map(created.map(item => [item.system.identifier, item]));
-  assert.equal(byId.size, 8);
+  assert.equal(byId.size, 9);
   assert.equal(byId.get("zele-malogo-lecheniya").name, "Зелье малого лечения");
   assert.match(byId.get("zele-malogo-lecheniya").system.description.value, /2к4 \+ 2/);
   assert.match(byId.get("zele-malogo-lecheniya").system.description.value, /nebolshoi-flakon-dlya-zelia/);
+  const crafted = byId.get("kraftovoe-zele-lecheniya");
+  assert.equal(crafted.name, "Крафтовое зелье лечения");
+  assert.equal(crafted.system.price.value, 550);
+  assert.equal(crafted.system.rarity, "common");
+  assert.match(crafted.system.description.value, /2к4 \+ 3/);
+  assert.match(crafted.system.description.value, /nebolshoi-flakon-dlya-zelia/);
   for (const item of created) {
     assert.equal(item.type, "consumable");
     assert.equal(item.system.type.value, "potion");

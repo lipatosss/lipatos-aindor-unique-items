@@ -29,6 +29,7 @@ jobs:
           node --check scripts/shop-ammunition.mjs
           node --check scripts/shop-swords.mjs
           node --check scripts/last-watch-seal.mjs
+          node --check scripts/profession-gear.mjs
           VERSION=$(node -p "require('./module.json').version")
           ASSET="lipatos-aindor-unique-items.zip"
           mkdir -p dist/lipatos-aindor-unique-items
@@ -73,5 +74,5 @@ jobs:
           else
             gh release create "$TAG" "$ASSET" --target "$GITHUB_SHA" --latest \
               --title "LipatoS — Уникальные предметы Айндора $TAG" \
-              --notes "Добавлена Печать Последнего Дозора: +1 КД, защита от испуга, реакция на урон союзнику с восстановлением заряда после долгого отдыха."
+              --notes "Добавлены два предмета ремесленников без иконок: фартух повара (+1 Кулинария) и просмоленный костюм рыбака (+2 Рыболовство) при надевании. Требуется LipatoS — Ремёсла v0.1.10+ для бонусов."
           fi

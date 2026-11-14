@@ -1,8 +1,8 @@
 {
   "id": "lipatos-aindor-unique-items",
   "title": "LipatoS — Уникальные предметы Айндора",
-  "description": "Уникальные предметы Айндора, включая Печать Последнего Дозора: +1 КД, защита от испуга и реакция на урон союзнику.",
-  "version": "1.0.14",
+  "description": "Уникальные предметы Айндора: Печать Последнего Дозора, ремесленное снаряжение повара и рыбака, другие уникальные вещи.",
+  "version": "1.0.15",
   "authors": [
     {
       "name": "LipatoS"
@@ -37,7 +37,8 @@
     "scripts/shop-bows.mjs",
     "scripts/shop-ammunition.mjs",
     "scripts/shop-swords.mjs",
-    "scripts/last-watch-seal.mjs"
+    "scripts/last-watch-seal.mjs",
+    "scripts/profession-gear.mjs"
   ],
   "url": "https://github.com/lipatosss/lipatos-aindor-unique-items",
   "manifest": "https://raw.githubusercontent.com/lipatosss/lipatos-aindor-unique-items/main/module.json",

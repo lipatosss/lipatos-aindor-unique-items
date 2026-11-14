@@ -1,10 +1,11 @@
 /**
- * Eight Aindor potions: canonical world templates for Foundry v14 / dnd5e 6.x.
+ * Eight Aindor potions (including small healing): canonical world templates for Foundry v14 / dnd5e 6.x.
  * The matching LipatoS Buffs & Debuffs module handles effects after actual use.
  * Deliberately leave illustrations up to the GM.
  */
 const NS = "lipatos-aindor-unique-items";
 const ACTIVITY = "potionUse0000001";
+const LEGACY_HEAL_ID = "zele-lecheniya";
 const POTIONS = [
   {
     id: "zele-krovavyh-shipov", name: "Зелье кровавых шипов", rarity: "uncommon", price: 600,
@@ -32,7 +33,7 @@ const POTIONS = [
     effect: "Первый раз до долгого отдыха, когда хиты опускаются до 0, можно реакцией совершить одну атаку оружием перед потерей сознания. После срабатывания эффект исчезает."
   },
   {
-    id: "zele-lecheniya", name: "Зелье лечения", rarity: "common", price: 500,
+    id: "zele-malogo-lecheniya", name: "Зелье малого лечения", rarity: "common", price: 500,
     prose: "Небольшой стеклянный флакон с густой рубиновой жидкостью, слегка светящейся изнутри. Сладковатый вкус с травяной горечью сопровождает быстрое заживление ран.",
     effect: "Мгновенно восстанавливает 2к4 + 2 хита, но не выше максимума."
   },
@@ -50,7 +51,7 @@ const POTIONS = [
 function potionDescription(entry) {
   return "<p>" + entry.prose + "</p><h3>Эффект</h3><p>" + entry.effect
     + "</p><p><strong>Применение:</strong> 1 действие; расходуется один флакон. "
-    + "Автоматизацию обеспечивает «LipatoS — Баффы и дебаффы».</p>";
+    + "После употребления в инвентаре остаётся «Небольшой флакон для зелья» (nebolshoi-flakon-dlya-zelia). Автоматизацию обеспечивает «LipatoS — Баффы и дебаффы».</p>";
 }
 function potionUseActivity() {
   return {
@@ -85,6 +86,9 @@ function potionItem(entry) {
 function potionDefinition(item) {
   if (item?.type !== "consumable") return null;
   const id = String(item.system?.identifier ?? item.flags?.[NS]?.aindorPotion ?? "").trim().toLowerCase();
+  // Upgrade ONLY our old healing template; never reinterpret a normal D&D healing item.
+  if (id === LEGACY_HEAL_ID && item.flags?.[NS]?.aindorPotion === LEGACY_HEAL_ID)
+    return POTIONS.find(p => p.id === "zele-malogo-lecheniya");
   return POTIONS.find(p => p.id === id)
     ?? POTIONS.find(p => p.name.toLocaleLowerCase("ru") === String(item.name ?? "").trim().toLocaleLowerCase("ru"))
     ?? null;
@@ -93,6 +97,7 @@ async function repairPotion(item) {
   const entry = potionDefinition(item);
   if (!entry) return false;
   const patch = {};
+  if (entry.id === "zele-malogo-lecheniya" && item.name === "Зелье лечения") patch.name = entry.name;
   if (item.system?.identifier !== entry.id) patch["system.identifier"] = entry.id;
   if (item.flags?.[NS]?.aindorPotion !== entry.id) patch["flags." + NS + ".aindorPotion"] = entry.id;
   if (item.system?.type?.value !== "potion") patch["system.type.value"] = "potion";
